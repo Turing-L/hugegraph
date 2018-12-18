@@ -62,7 +62,7 @@ public class HugeGraphSONModule extends TinkerPopJacksonModule {
     private static final GraphSONSchemaSerializer schemaSerializer =
                          new GraphSONSchemaSerializer();
 
-    private static final String DF = "yyyy-MM-dd HH:mm:ss.SSS";
+    public static final String DF = "yyyy-MM-dd HH:mm:ss.SSS";
     public static final SafeDateFormat DATE_FORMAT = new SafeDateFormat(DF);
 
     static {

@@ -22,10 +22,11 @@ package com.baidu.hugegraph.type.define;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
-import com.baidu.hugegraph.io.HugeGraphSONModule;
-import com.baidu.hugegraph.util.E;
+import com.baidu.hugegraph.util.DateUtil;
+import com.google.common.collect.ImmutableMap;
 
 public enum DataType implements SerialEnum {
 
@@ -45,6 +46,15 @@ public enum DataType implements SerialEnum {
     private byte code = 0;
     private String name = null;
     private Class<?> clazz = null;
+
+    private static final Map<String, String> DATE_FORMATS = ImmutableMap.of(
+            "^\\d{4}-\\d{1,2}-\\d{1,2}",
+            "yyyy-MM-dd",
+            "^\\d{4}-\\d{1,2}-\\d{1,2}\\s\\d{2}:\\d{2}:\\d{2}",
+            "yyyy-MM-dd HH:mm:ss",
+            "^\\d{4}-\\d{1,2}-\\d{1,2}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}",
+            "yyyy-MM-dd HH:mm:ss.SSS"
+    );
 
     static {
         SerialEnum.register(DataType.class);
@@ -132,16 +142,27 @@ public enum DataType implements SerialEnum {
             if (value instanceof Number) {
                 return new Date(((Number) value).longValue());
             } else if (value instanceof String) {
-                try {
-                    return HugeGraphSONModule.DATE_FORMAT.parse((String) value);
-                } catch (ParseException e) {
-                    E.checkArgument(false, "%s, expect format: %s",
-                                    e.getMessage(),
-                                    HugeGraphSONModule.DATE_FORMAT.toPattern());
-                }
+                return stringToDate((String) value);
             }
         }
         return null;
+    }
+
+    private Date stringToDate(String value) {
+        for (Map.Entry<String, String> entry : DATE_FORMATS.entrySet()) {
+            if (value.matches(entry.getKey())) {
+                try {
+                    return DateUtil.parse(value, entry.getValue());
+                } catch (ParseException e) {
+                    throw new IllegalArgumentException(String.format(
+                              "%s, expect format: %s",
+                              e.getMessage(), entry.getValue()));
+                }
+            }
+        }
+        throw new IllegalArgumentException(String.format(
+                  "The valid date formats are: %s, but got '%s'",
+                  DATE_FORMATS.values(), value));
     }
 
     public <V> UUID valueToUUID(V value) {

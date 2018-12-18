@@ -32,6 +32,7 @@ import com.baidu.hugegraph.backend.id.Id;
 import com.baidu.hugegraph.io.HugeGraphSONModule;
 import com.baidu.hugegraph.testutil.FakeObjects.FakeEdge;
 import com.baidu.hugegraph.testutil.FakeObjects.FakeVertex;
+import com.baidu.hugegraph.util.DateUtil;
 
 public class Utils {
 
@@ -79,8 +80,12 @@ public class Utils {
     }
 
     public static Date date(String rawDate) {
+        return date(rawDate, HugeGraphSONModule.DF);
+    }
+
+    public static Date date(String rawDate, String df) {
         try {
-            return HugeGraphSONModule.DATE_FORMAT.parse(rawDate);
+            return DateUtil.parse(rawDate, df);
         } catch (ParseException e) {
             throw new IllegalArgumentException(String.format(
                       "Invalid date '%s'", rawDate));
